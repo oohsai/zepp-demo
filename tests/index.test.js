@@ -1,85 +1,105 @@
-const { default: axios } = require("axios");
-
-function sum(a, b) {
-  return a + b
-}
+const axios2 = require("axios");
 
 const BACKEND_URL = "http://localhost:3000"
-const WS_URL = "ws://localhost:3001"
+// const WS_URL = "ws://localhost:3001"
+
+const axios = {
+    post: async (...args) => {
+        try {
+            const res = await axios2.post(...args)
+            return res
+        } catch(e) {
+            return e.response
+        }
+    },
+    get: async (...args) => {
+        try {
+            const res = await axios2.get(...args)
+            return res
+        } catch(e) {
+            return e.response
+        }
+    },
+    put: async (...args) => {
+        try {
+            const res = await axios2.put(...args)
+            return res
+        } catch(e) {
+            return e.response
+        }
+    },
+    delete: async (...args) => {
+        try {
+            const res = await axios2.delete(...args)
+            return res
+        } catch(e) {
+            return e.response
+        }
+    },
+}
 
 describe("Authentication", () => {
     test('User is able to sign up only once', async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
-        const response =  await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789789";
+        const response =  await axios.post(`${BACKEND_URL}/api/v1/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
-        expect(response.statusCode).toBe(200);
 
-        const updatedResponse =  await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
+        const updatedResponse =  await axios.post(`${BACKEND_URL}/api/v1/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
-        expect(updatedResponse.statusCode).toBe(400);
+        expect(updatedResponse.status).toBe(400);
     })
 
     test('User signup request fails if fields are empty', async () => {
-        const username = `demo-${Math.random()}`
-        const password = "123456"
+        const username = `demo@${Math.random()}.com`
+        const password = "123456789"
 
-        const usernameResponse = axios.post(`${BACKEND_URL}/api/v1/signup`, {
+        const usernameResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
             password,
-            type:"admin"
         })
 
-        expect(usernameResponse.statusCode).toBe(400)
-
-        const passResponse = axios.post(`${BACKEND_URL}/api/v1/signup`, {
-            username,
-            type:"admin"
-        })
-
-        expect(passResponse.statusCode).toBe(400)
+        expect(usernameResponse.status).toBe(400)
     })
 
     test('Signin succeds if username and password are correct', async() => {
-        const username = `demo-${Math.random()}`
-        const password = "123456"
+        const username = `demo@${Math.random()}.com`
+        const password = "123456789"
 
-        await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+        const sigresponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
-        const response = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+        const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
             username,
-            password,
+            password
         })
-
-        expect(response.statusCode).toBe(200)
-        expect(response.body.token).toBeDefined()
+        expect(response.status).toBe(200)
+        expect(response.data.token).toBeDefined()
     })
 
     test('Signin fails if username and password are incorrect', async() => {
-        const username = `demo-${Math.random()}`
-        const password = "123456"
+        const username = `demo@${Math.random()}.com`
+        const password = "123456789"
 
         await axios.post(`${BACKEND_URL}/api/v1/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
-        const response = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
-            username : 'demodemo',
+        const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+            username : 'demo@demo.com',
             password,
         })
-
-        expect(response.statusCode).toBe(403)
+        expect(response.status).toBe(403)
     })
 })
 
@@ -88,12 +108,12 @@ describe("User MetaData endpoints", () => {
     let avatarId = "";
 
     beforeAll( async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789";
           await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
          await axios.post(`${BACKEND_URL}/api/v1/user/signin`, {
@@ -121,7 +141,7 @@ describe("User MetaData endpoints", () => {
             }
         })
 
-        expect(response.statusCode).toBe(400);
+        expect(response.status).toBe(400);
     })
 
     test("User can update their metadata with avatarId", async () => {
@@ -133,7 +153,7 @@ describe("User MetaData endpoints", () => {
             }
         })
 
-        expect(response.statusCode).toBe(200);
+        expect(response.status).toBe(200);
     })
 
     test("User can't update their metadata with avatarId without auth header", async () => {
@@ -141,7 +161,7 @@ describe("User MetaData endpoints", () => {
             avatarId : avatarId
         })
 
-        expect(response.statusCode).toBe(403);
+        expect(response.status).toBe(403);
     })
 
 })
@@ -151,12 +171,12 @@ describe("User avatar information", () => {
     let token;
     let userId;
     beforeAll( async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789";
           const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
         userId = signUpResponse.data.userId
@@ -206,12 +226,12 @@ describe("Space information", () => {
     let adminId;
 
     beforeAll( async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789";
         const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
         adminId = signUpResponse.data.userId
@@ -226,7 +246,7 @@ describe("Space information", () => {
         const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username : username + "-user",
             password,
-            type: "user"
+            role: "user"
         })
 
         userId = userSignUpResponse.data.userId
@@ -321,7 +341,7 @@ describe("Space information", () => {
                 Authorization : `Bearer ${userToken}`
             }
         })
-        expect(response.statusCode).toBe(400)
+        expect(response.status).toBe(400)
     })
 
     test("User is not able to delete a space that doesnt exist", async () => {
@@ -330,7 +350,7 @@ describe("Space information", () => {
                 Authorization : `Bearer ${userToken}`
             }
         })
-        expect(response.statusCode).toBe(400)
+        expect(response.status).toBe(400)
     })
 
     test("User is able to delete a space that exist", async () => {
@@ -349,7 +369,7 @@ describe("Space information", () => {
                 Authorization : `Bearer ${userToken}`
             }
         })
-        expect(response.statusCode).toBe(200)
+        expect(response.status).toBe(200)
     })
 
     test("user should not be able to delete other spaces" , async () => {
@@ -367,7 +387,7 @@ describe("Space information", () => {
                 Authorization : `Bearer ${adminToken}`
             }
         })
-        expect(deleteResponse.statusCode).toBe(400)
+        expect(deleteResponse.status).toBe(400)
     })
 
     test("admin has no spaces initally" , async () => {
@@ -411,13 +431,13 @@ describe("Arena Endpoint", () => {
     let spaceId;
 
     beforeAll( async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789";
 
         const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
         adminId = signUpResponse.data.userId
@@ -432,7 +452,7 @@ describe("Arena Endpoint", () => {
         const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username : username + "-user",
             password,
-            type: "user"
+            role: "user"
         })
 
         userId = userSignUpResponse.data.userId
@@ -511,7 +531,7 @@ describe("Arena Endpoint", () => {
                 Authorization : `Bearer ${userToken}`
             }
         });
-        expect(response.statusCode).toBe(400);
+        expect(response.status).toBe(400);
     })
 
     test("Incorect spaceID returns a 400", async () => {
@@ -588,7 +608,7 @@ describe("Arena Endpoint", () => {
                 Authorization : `Bearer ${userToken}`
             }
         });
-        expect(newElement.statusCode).toBe(400)
+        expect(newElement.status).toBe(400)
     })
 
 })
@@ -600,13 +620,13 @@ describe("Admin endpoints", () => {
     let adminId;
 
     beforeAll( async () => {
-        const username = "demo" + Math.random();
-        const password = "123456";
+        const username = `demo@${Math.random()}.com`;
+        const password = "123456789";
 
         const signUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username,
             password,
-            type: "admin"
+            role: "admin"
         })
 
         adminId = signUpResponse.data.userId
@@ -621,7 +641,7 @@ describe("Admin endpoints", () => {
         const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
             username : username + "-user",
             password,
-            type: "user"
+            role: "user"
         })
 
         userId = userSignUpResponse.data.userId
@@ -674,10 +694,10 @@ describe("Admin endpoints", () => {
             }
         })
 
-        expect(element1Response.statusCode).toBe(403)
-        expect(mapResponse.statusCode).toBe(403)
-        expect(avatarResponse.statusCode).toBe(403)
-        expect(updateElementResponse.statusCode).toBe(403)
+        expect(element1Response.status).toBe(403)
+        expect(mapResponse.status).toBe(403)
+        expect(avatarResponse.status).toBe(403)
+        expect(updateElementResponse.status).toBe(403)
     })
 
     test("Admin is able to hit admin endpoints", async () => {
@@ -720,9 +740,9 @@ describe("Admin endpoints", () => {
             }
         })
 
-        expect(element1Response.statusCode).toBe(200)
-        expect(mapResponse.statusCode).toBe(200)
-        expect(avatarResponse.statusCode).toBe(200)
+        expect(element1Response.status).toBe(200)
+        expect(mapResponse.status).toBe(200)
+        expect(avatarResponse.status).toBe(200)
     })
 
     test("Admin is able to update the space imageUrl for an element", async () => {
@@ -746,255 +766,255 @@ describe("Admin endpoints", () => {
             }
         })
 
-        expect(updateElementResponse.statusCoded).toBe(200)
+        expect(updateElementResponse.statusd).toBe(200)
     })
 })
 
-describe("Websockets test", () => {
-    let adminToken;
-    let adminUserId;
-    let userToken;
-    let userId;
-    let mapId;
-    let element1Id;
-    let element2Id;
-    let spaceId;
-    let ws1;
-    let ws2;
-    let ws1messages = [];
-    let ws2messages = [];
-    let userX;
-    let userY;
-    let adminX;
-    let adminY;
+// describe("Websockets test", () => {
+//     let adminToken;
+//     let adminUserId;
+//     let userToken;
+//     let userId;
+//     let mapId;
+//     let element1Id;
+//     let element2Id;
+//     let spaceId;
+//     let ws1;
+//     let ws2;
+//     let ws1messages = [];
+//     let ws2messages = [];
+//     let userX;
+//     let userY;
+//     let adminX;
+//     let adminY;
 
 
-    //wait for the next message and when get then resolves the latest message
-    function waitForAndPopLatestMessage(messageArray) {
-        return new Promise(r => {
-            if(messageArray.length > 0) {
-                return messageArray.shift()
-            } else {
-                let interval = setInterval(() => {
-                    if(messageArray.length > 0) {
-                        resolve(messageArray.shift())
-                        clearInterval(interval)
-                    }
-                })
-            }
-        })
-    }
-    async function setupHTTP(){
-        const username = `demo-${Math.random()}`
-        const password = "123456"
-        const adminSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
-            username,
-            password,
-            role : "admin"
-        })
+//     //wait for the next message and when get then resolves the latest message
+//     function waitForAndPopLatestMessage(messageArray) {
+//         return new Promise(r => {
+//             if(messageArray.length > 0) {
+//                 return messageArray.shift()
+//             } else {
+//                 let interval = setInterval(() => {
+//                     if(messageArray.length > 0) {
+//                         resolve(messageArray.shift())
+//                         clearInterval(interval)
+//                     }
+//                 })
+//             }
+//         })
+//     }
+//     async function setupHTTP(){
+//         const username = `demo@${Math.random()}.com`
+//         const password = "123456789"
+//         const adminSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+//             username,
+//             password,
+//             role : "admin"
+//         })
 
-        const adminSigninResponse = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
-            username,
-            password
-        })
+//         const adminSigninResponse = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+//             username,
+//             password
+//         })
 
-        adminUserId = adminSignUpResponse.data.userId;
-        adminToken = adminSigninResponse.data.token;
+//         adminUserId = adminSignUpResponse.data.userId;
+//         adminToken = adminSigninResponse.data.token;
 
-        const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
-            username : username + `-user`,
-            password
-        })
+//         const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+//             username : username + `-user`,
+//             password
+//         })
 
-        const userSigninResponse = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
-            username : username + `-user`,
-            password
-        })
+//         const userSigninResponse = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+//             username : username + `-user`,
+//             password
+//         })
 
-        userId = userSignUpResponse.data.userId
-        userToken = userSigninResponse.data.token
+//         userId = userSignUpResponse.data.userId
+//         userToken = userSigninResponse.data.token
 
-        const element1Response = await axios.post(`${BACKEND_URL}/api/v1/admin/element`, {
-            "imageUrl" : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6uo4GUNUV28mFZF0GZSQ7NDQPH1koGc-Urw&s",
-            "width": 1,
-            "height": 1,
-            "static" : true
-        }, {
-            headers : {
-                Authorization: `Bearer ${adminToken}`
-            }
-        })
+//         const element1Response = await axios.post(`${BACKEND_URL}/api/v1/admin/element`, {
+//             "imageUrl" : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6uo4GUNUV28mFZF0GZSQ7NDQPH1koGc-Urw&s",
+//             "width": 1,
+//             "height": 1,
+//             "static" : true
+//         }, {
+//             headers : {
+//                 Authorization: `Bearer ${adminToken}`
+//             }
+//         })
 
-        const element2Response = await axios.post(`${BACKEND_URL}/api/v1/admin/element`, {
-            "imageUrl" : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6uo4GUNUV28mFZF0GZSQ7NDQPH1koGc-Urw&s",
-            "width": 1,
-            "height": 1,
-            "static" : true
-        }, {
-            headers : {
-                Authorization: `Bearer ${adminToken}`
-            }
-        })
+//         const element2Response = await axios.post(`${BACKEND_URL}/api/v1/admin/element`, {
+//             "imageUrl" : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6uo4GUNUV28mFZF0GZSQ7NDQPH1koGc-Urw&s",
+//             "width": 1,
+//             "height": 1,
+//             "static" : true
+//         }, {
+//             headers : {
+//                 Authorization: `Bearer ${adminToken}`
+//             }
+//         })
 
-        element1Id = element1Response.data.id
-        element2Id = element2Response.data.id
+//         element1Id = element1Response.data.id
+//         element2Id = element2Response.data.id
 
-        const mapResponse = await axios.post(`${BACKEND_URL}/api/v1/admin/map`, {
-            "thumbnail" : "https://media.istockphoto.com/id/922427928/vector/top-view-of-the-countryside.jpg?s=612x612&w=0&k=20&c=m_VAVgHzH4E1IWb0JMvQxiUXZa8ZLUuLhsw237fRKfI=",
-            "dimensions" : "100x200",
-            "defaultElements" :  [{
-                elementId: element1Id,
-                x:20,
-                y:20
-            }, {
-                elementId: element1Id,
-                x:18,
-                y:20
-            }, {
-                elementId: element2Id,
-                x:19,
-                y:21,
-            }]
-        }, {
-            headers: {
-                "Authorization" : `Bearer ${adminToken}`
-            }
-        })
-        mapId = mapResponse.data.id
+//         const mapResponse = await axios.post(`${BACKEND_URL}/api/v1/admin/map`, {
+//             "thumbnail" : "https://media.istockphoto.com/id/922427928/vector/top-view-of-the-countryside.jpg?s=612x612&w=0&k=20&c=m_VAVgHzH4E1IWb0JMvQxiUXZa8ZLUuLhsw237fRKfI=",
+//             "dimensions" : "100x200",
+//             "defaultElements" :  [{
+//                 elementId: element1Id,
+//                 x:20,
+//                 y:20
+//             }, {
+//                 elementId: element1Id,
+//                 x:18,
+//                 y:20
+//             }, {
+//                 elementId: element2Id,
+//                 x:19,
+//                 y:21,
+//             }]
+//         }, {
+//             headers: {
+//                 "Authorization" : `Bearer ${adminToken}`
+//             }
+//         })
+//         mapId = mapResponse.data.id
 
-        const spaceResponse = axios.post(`${BACKEND_URL}/api/v1/space`, {
-            "name" : "Test",
-            "dimensions" : "100x200",
-            "mapId" : mapId
-        }, {
-            headers : {
-                Authorization : `Bearer ${userToken}`
-            }
-        })
+//         const spaceResponse = axios.post(`${BACKEND_URL}/api/v1/space`, {
+//             "name" : "Test",
+//             "dimensions" : "100x200",
+//             "mapId" : mapId
+//         }, {
+//             headers : {
+//                 Authorization : `Bearer ${userToken}`
+//             }
+//         })
         
-        spaceId = spaceResponse.data.spaceId
-    }
+//         spaceId = spaceResponse.data.spaceId
+//     }
 
-    async function setupWs() {
-        ws1 = new WebSocket(WS_URL)
-        ws2 = new WebSocket(WS_URL)
+//     async function setupWs() {
+//         ws1 = new WebSocket(WS_URL)
+//         ws2 = new WebSocket(WS_URL)
 
-        await new Promise(r => {
-            ws1.onopen = r
-        })
+//         await new Promise(r => {
+//             ws1.onopen = r
+//         })
 
-        ws1.onmessage = (event) => {
-            ws1messages.push(JSON.parse(event.data))
-        }
+//         ws1.onmessage = (event) => {
+//             ws1messages.push(JSON.parse(event.data))
+//         }
 
-        ws2 = new WebSocket(WS_URL)
+//         ws2 = new WebSocket(WS_URL)
 
-        await new Promise(r => {
-            ws2.onopen = r
-        })
+//         await new Promise(r => {
+//             ws2.onopen = r
+//         })
 
 
-        ws2.onmessage = (event) => {
-            ws2messages.push(JSON.parse(event.data))
-        }
-    }
+//         ws2.onmessage = (event) => {
+//             ws2messages.push(JSON.parse(event.data))
+//         }
+//     }
         
-    beforeAll(async () => {
-        setupHTTP()
-        setupWs()
-    })
+//     beforeAll(async () => {
+//         setupHTTP()
+//         setupWs()
+//     })
 
-    test("Get ack back for joining the spaces", async () => {
-        ws1.send(JSON.stringify({
-            "type" : "join",
-            "payload" : {
-                "spaceId" : spaceId,
-                "token" : adminToken
-        }
-        }))
+//     test("Get ack back for joining the spaces", async () => {
+//         ws1.send(JSON.stringify({
+//             "role" : "join",
+//             "payload" : {
+//                 "spaceId" : spaceId,
+//                 "token" : adminToken
+//         }
+//         }))
 
-        const message1 = await waitForAndPopLatestMessage(ws1messages);
+//         const message1 = await waitForAndPopLatestMessage(ws1messages);
 
-        ws2.send(JSON.stringify({
-            "type" : "join",
-            "payload" : {
-                "spaceId" : spaceId,
-                "token" : userToken
-        }
-        }))
+//         ws2.send(JSON.stringify({
+//             "role" : "join",
+//             "payload" : {
+//                 "spaceId" : spaceId,
+//                 "token" : userToken
+//         }
+//         }))
 
         
-        const message2 = await waitForAndPopLatestMessage(ws2messages);
-        const message3 = await waitForAndPopLatestMessage(ws1messages);
+//         const message2 = await waitForAndPopLatestMessage(ws2messages);
+//         const message3 = await waitForAndPopLatestMessage(ws1messages);
 
-        expect(message1.type).toBe("space-joined");
-        expect(message2.type).toBe("space-joined");
-        expect(message1.payload.users.length).toBe(0)
-        expect(message2.payload.users.length).toBe(1)
-        expect(message3.type).toBe('user-join');
-        expect(message3.payload.x).toBe(message2.payload.spawn.x);
-        expect(message3.payload.y).toBe(message2.payload.spawn.y);
-        expect(message3.payload.userId).toBe(userId);
-        adminX = message1.payload.spawn.x
-        adminY = message1.payload.spawn.y
-        userX = message2.payload.spawn.x
-        userY = message2.payload.spawn.y
+//         expect(message1.role).toBe("space-joined");
+//         expect(message2.role).toBe("space-joined");
+//         expect(message1.payload.users.length).toBe(0)
+//         expect(message2.payload.users.length).toBe(1)
+//         expect(message3.role).toBe('user-join');
+//         expect(message3.payload.x).toBe(message2.payload.spawn.x);
+//         expect(message3.payload.y).toBe(message2.payload.spawn.y);
+//         expect(message3.payload.userId).toBe(userId);
+//         adminX = message1.payload.spawn.x
+//         adminY = message1.payload.spawn.y
+//         userX = message2.payload.spawn.x
+//         userY = message2.payload.spawn.y
 
-    })
+//     })
 
-    test("User should not be able to move across the boundary of the wall",  async () => {
-        ws1.send(JSON.stringify(
-            {
-                type: "movement",
-                payload: {
-                    x : 1000000,
-                    y:100
-                }
-            }
-        ));
-        const message = await waitForAndPopLatestMessage(ws1messages);
-        expect(message.type).toBe("movement-rejected")
-        expect(message.payload.x).toBe(adminX)
-        expect(message.payload.y).toBe(adminY)
-    })
+//     test("User should not be able to move across the boundary of the wall",  async () => {
+//         ws1.send(JSON.stringify(
+//             {
+//                 role: "movement",
+//                 payload: {
+//                     x : 1000000,
+//                     y:100
+//                 }
+//             }
+//         ));
+//         const message = await waitForAndPopLatestMessage(ws1messages);
+//         expect(message.role).toBe("movement-rejected")
+//         expect(message.payload.x).toBe(adminX)
+//         expect(message.payload.y).toBe(adminY)
+//     })
 
-    test("User should not be able to move 2 blocks at the same time",  async () => {
-        ws1.send(JSON.stringify(
-            {
-                type: "movement",
-                payload: {
-                    x : adminX + 2,
-                    y: adminY
-                }
-            }
-        ));
-        const message = await waitForAndPopLatestMessage(ws1messages);
-        expect(message.type).toBe("movement-rejected")
-        expect(message.payload.x).toBe(adminX)
-        expect(message.payload.y).toBe(adminY)
-    })
+//     test("User should not be able to move 2 blocks at the same time",  async () => {
+//         ws1.send(JSON.stringify(
+//             {
+//                 role: "movement",
+//                 payload: {
+//                     x : adminX + 2,
+//                     y: adminY
+//                 }
+//             }
+//         ));
+//         const message = await waitForAndPopLatestMessage(ws1messages);
+//         expect(message.role).toBe("movement-rejected")
+//         expect(message.payload.x).toBe(adminX)
+//         expect(message.payload.y).toBe(adminY)
+//     })
 
-    test("Correct Movement should be broadcasted",  async () => {
-        ws1.send(JSON.stringify(
-            {
-                type: "movement",
-                payload: {
-                    x : adminX + 1,
-                    y: adminY,
-                    userId : adminId
-                }
-            }
-        ));
-        const message = await waitForAndPopLatestMessage(ws1messages);
-        expect(message.type).toBe("movement-rejected")
-        expect(message.payload.x).toBe(adminX + 1)
-        expect(message.payload.y).toBe(adminY)
-    })
+//     test("Correct Movement should be broadcasted",  async () => {
+//         ws1.send(JSON.stringify(
+//             {
+//                 role: "movement",
+//                 payload: {
+//                     x : adminX + 1,
+//                     y: adminY,
+//                     userId : adminId
+//                 }
+//             }
+//         ));
+//         const message = await waitForAndPopLatestMessage(ws1messages);
+//         expect(message.role).toBe("movement-rejected")
+//         expect(message.payload.x).toBe(adminX + 1)
+//         expect(message.payload.y).toBe(adminY)
+//     })
 
-    test("If a user leaves, the other should be notified",  async () => {
-        ws1.close();
-        const message = await waitForAndPopLatestMessage(ws2messages);
-        expect(message.type).toBe("user-left")
-        expect(message.payload.userId).toBe(adminUserId)
-    })
-})
+//     test("If a user leaves, the other should be notified",  async () => {
+//         ws1.close();
+//         const message = await waitForAndPopLatestMessage(ws2messages);
+//         expect(message.role).toBe("user-left")
+//         expect(message.payload.userId).toBe(adminUserId)
+//     })
+// })

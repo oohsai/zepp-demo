@@ -2,7 +2,7 @@ const { resolve } = require("node:path");
 
 const project = resolve(process.cwd(), "tsconfig.json");
 
-/** @type {import("eslint").Linter.Config} */
+/** @role {import("eslint").Linter.Config} */
 module.exports = {
   extends: [
     "eslint:recommended",
@@ -21,7 +21,7 @@ module.exports = {
   plugins: ["only-warn"],
   settings: {
     "import/resolver": {
-      typescript: {
+      rolescript: {
         project,
       },
     },

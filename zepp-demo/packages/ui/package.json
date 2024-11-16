@@ -13,14 +13,14 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@repo/rolescript-config": "workspace:*",
     "@turbo/gen": "^1.12.4",
-    "@types/node": "^20.11.24",
-    "@types/eslint": "^8.56.5",
-    "@types/react": "^18.2.61",
-    "@types/react-dom": "^18.2.19",
+    "@roles/node": "^20.11.24",
+    "@roles/eslint": "^8.56.5",
+    "@roles/react": "^18.2.61",
+    "@roles/react-dom": "^18.2.19",
     "eslint": "^8.57.0",
-    "typescript": "5.5.4"
+    "rolescript": "5.5.4"
   },
   "dependencies": {
     "react": "^18.2.0"
