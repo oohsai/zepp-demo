@@ -332,17 +332,17 @@ describe("Space information", () => {
         expect(response.data.spaceId).toBeDefined()
     })
 
-    // test("User is able to create a space without mapId(Empty Space)", async () => {
-    //     const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-    //         "name" : "Test",
-    //         "dimensions" : "100x200",
-    //     }, {
-    //         headers : {
-    //             Authorization : `Bearer ${userToken}`
-    //         }
-    //     })
-    //     expect(response.data.spaceId).toBeDefined()
-    // })
+    test("User is able to create a space without mapId(Empty Space)", async () => {
+        const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
+            "name" : "Test",
+            "dimensions" : "100x200",
+        }, {
+            headers : {
+                Authorization : `Bearer ${userToken}`
+            }
+        })
+        expect(response.data.spaceId).toBeDefined()
+    })
 
     test("User is  not able to create a space without mapId || dimensions", async () => {
         const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
@@ -364,24 +364,24 @@ describe("Space information", () => {
         expect(response.status).toBe(400)
     })
 
-    // test("User is able to delete a space that exist", async () => {
-    //     const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-    //         "name" : "Test",
-    //         "dimensions" : "100x200",
-    //         "mapId" : mapId
-    //     }, {
-    //         headers : {
-    //             Authorization : `Bearer ${userToken}`
-    //         }
-    //     })
+    test("User is able to delete a space that exist", async () => {
+        const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
+            "name" : "Test",
+            "dimensions" : "100x200",
+            "mapId" : mapId
+        }, {
+            headers : {
+                Authorization : `Bearer ${userToken}`
+            }
+        })
 
-    //     const updatedResponse = await axios.delete(`${BACKEND_URL}/api/v1/space/${response.data.spaceId}`, {
-    //         headers : {
-    //             Authorization : `Bearer ${userToken}`
-    //         }
-    //     })
-    //     expect(response.status).toBe(200)
-    // })
+        const updatedResponse = await axios.delete(`${BACKEND_URL}/api/v1/space/${response.data.spaceId}`, {
+            headers : {
+                Authorization : `Bearer ${userToken}`
+            }
+        })
+        expect(response.status).toBe(200)
+    })
 
     test("user should not be able to delete other spaces" , async () => {
         const response = await axios.post(`${BACKEND_URL}/api/v1/space`, {
@@ -406,30 +406,47 @@ describe("Space information", () => {
                 Authorization : `Bearer ${adminToken}`
             }
         })
-        console.log(response.data)
         expect(response.data.spaces.length).toBe(1)
     })
 
-    // test("user has no spaces initally and hence are created" , async () => {
-    //     const spaceCreateResponse = await axios.post(`${BACKEND_URL}/api/v1/space`, {
-    //         "name" : "Test",
-    //         "dimensions" : "100x200",
-    //     }, {
-    //         headers: {
-    //             Authorization : `Bearer ${userToken}`
-    //         }
-    //     })
-    //     const response = await axios.get(`${BACKEND_URL}/api/v1/space/all`, {
-    //         headers: {
-    //             Authorization : `Bearer ${userToken}`
-    //         }
-    //     })
-    //     console.log(response.data.spaces)
-    //     console.log(spaceCreateResponse)
-    //     const filteredSpaces = response.data.spaces.find(x => x.id == spaceCreateResponse.data.spaceId)
-    //     expect(response.data.spaces.length).toBeGreaterThanOrEqual(1)
-    //     expect(filteredSpaces).toBeDefined()
-    // })
+    test("user has no spaces initally and hence are created" , async () => {
+        const username = `demo12@${Math.random()}.com`;
+        const password = "123456789";
+
+        const userSignUpResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
+            username : username + "user",
+            password,
+            role: "user"
+        })
+
+        userId = userSignUpResponse.data.userId
+
+        const userRes = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
+            username : username + "user",
+            password,
+        })
+
+        userToken = userRes.data.token
+
+        const spaceCreateResponse = await axios.post(`${BACKEND_URL}/api/v1/space`, {
+            "name" : "Test",
+            "dimensions" : "100x200",
+        }, {
+            headers: {
+                Authorization : `Bearer ${userToken}`
+            }
+        })
+        const response = await axios.get(`${BACKEND_URL}/api/v1/space/all`, {
+            headers: {
+                Authorization : `Bearer ${userToken}`
+            }
+        })
+        console.log(response.data.spaces)
+        console.log(spaceCreateResponse)
+        const filteredSpaces = response.data.spaces.find(x => x.id == spaceCreateResponse.data.spaceId)
+        expect(response.data.spaces.length).toBeGreaterThanOrEqual(1)
+        expect(filteredSpaces).toBeDefined()
+    })
 
 })
 
